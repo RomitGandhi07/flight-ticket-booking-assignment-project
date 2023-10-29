@@ -4,5 +4,6 @@ export enum Tables {
     TRAVELER_ADDRESSES = "traveler_addresses",
     CITIES = "cities",
     STATES = "states",
-    COUNTRIES = "countries"
+    COUNTRIES = "countries",
+    PASSENGERS = "passengers"
 }
