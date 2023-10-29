@@ -1,5 +1,6 @@
 
-import mysql, { Connection } from 'mysql2/promise';
+import mysql, { Connection, FieldPacket, ResultSetHeader } from 'mysql2/promise';
+import { Tables } from '../enums/tables.enum';
 
 export let databaseManager: DatabaseManager;
 
@@ -134,12 +135,15 @@ export class DatabaseManager {
             const values = Object.values(data).map((value) => value);
 
             const sqlQuery = `INSERT INTO ${tableName} (${columns}) VALUES (${values
-        .map((_, i) => '$' + (i + 1))
-        .join(', ')})${returnRecords ? " RETURNING *": ""};`;
+            .map((_, i) => '?')
+            .join(', ')})${returnRecords ? "": ""};`;
 
-            const result = await this.connection.query(sqlQuery, values);
+            const result: [ResultSetHeader, FieldPacket[]] = await this.connection.query(sqlQuery, values);
 
-            console.info("Result from insert", result);
+
+            if(!result[0] || !result[0].affectedRows) {
+                throw new Error("Something went wrong while inserting...");
+            }
             // // If any row has been inserted then continue
             // if(result.rowCount) {
             //     // If we need to return id then return it otherwise return the rowCount means how many rows inserted
@@ -147,7 +151,7 @@ export class DatabaseManager {
             //         return result.rows[0];
             //     }
             //     else {
-            //         return result.rowCount;
+            //         return result.rowCount;`
             //     }
             // }
 
@@ -211,52 +215,44 @@ export class DatabaseManager {
         }
     }
 
-    async updateRecordFromTable({tableName, record, whereCondition, returnRecords = true}: {
-        tableName: string,
+    async updateRecordFromTable({tableName, record, whereCondition = null, returnRecords = true}: {
+        tableName: Tables,
         record: Record<string, any>,
-        whereCondition?: string,
+        whereCondition?: {
+            condition: string,
+            values: Array<any>
+        } | null,
         returnRecords?: boolean
     }) {
         try {
+            // Check whether record object if of specific type or not
             if (!record || typeof record !== 'object' || Array.isArray(record)) {
                 throw new Error('Input record should be a non-null object.');
             }
 
-            if (
-                !tableName ||
-                typeof tableName !== 'string' ||
-                tableName.trim() === ''
-            ) {
-                throw new Error('Table name should be a non-empty string.');
-            }
-
             const columns = Object.keys(record);
-
             const values = Object.values(record).map((value) => value);
 
             let updateQuery = `UPDATE ${tableName} SET `;
             for (let i = 0; i < columns.length; i++) {
-                updateQuery += `${columns[i]} = $${i + 1}`;
+                updateQuery += `${columns[i]} = ?`;
                 if (i !== columns.length - 1) {
                     updateQuery += ', ';
                 }
             }
 
             if (whereCondition) {
-                if (
-                    typeof whereCondition !== 'string' ||
-                    whereCondition.trim() === ''
-                ) {
-                    throw new Error('Where condition should be a non-empty string.');
-                }
-                updateQuery += ` WHERE ${whereCondition}`;
+                updateQuery += ` WHERE ${whereCondition.condition}`;
             }
-            if(returnRecords) {
-                updateQuery += `RETURNING *`;
+            // if(returnRecords) {
+            //     updateQuery += `RETURNING *`;
+            // }
+
+            const result: [ResultSetHeader, FieldPacket[]] = await this.connection.query(updateQuery, [...values, ...(whereCondition?.values ?? [])]);
+
+            if(!result[0] || !result[0].affectedRows) {
+                throw new Error("Something went wrong while updating...");
             }
-
-            const result = await this.connection.query(updateQuery, values);
-
             // If any row has been inserted then continue
             // if(result.rowCount) {
             //     // If we need to return id then return it otherwise return the rowCount means how many rows updated
@@ -276,11 +272,17 @@ export class DatabaseManager {
         }
     }
 
-    async deleteRecordFromTable({tableName, whereCondition, returnRecords = true}: {tableName: string, whereCondition: string, returnRecords: boolean}) {
+    async deleteRecordFromTable({tableName, whereCondition, returnRecords = true}: {tableName: Tables, whereCondition: {
+        condition: string,
+        values: Array<any>
+    }, returnRecords?: boolean}) {
         try {
-            const deleteQuery = `DELETE FROM ${tableName} WHERE ${whereCondition}${returnRecords ? " RETURNING *": ""}`;
-            const result = await this.connection.query(deleteQuery);
+            const deleteQuery = `DELETE FROM ${tableName} WHERE ${whereCondition.condition}${returnRecords ? "": ""}`;
+            const result: [ResultSetHeader, FieldPacket[]]  = await this.connection.query(deleteQuery, whereCondition.values);
 
+            if(!result[0] || !result[0].affectedRows) {
+                throw new Error("Something went wrong while deleting...");
+            }
             // // If any row has been inserted then continue
             // if(result.rowCount) {
             //     // If we need to return id then return it otherwise return the rowCount means how many rows updated

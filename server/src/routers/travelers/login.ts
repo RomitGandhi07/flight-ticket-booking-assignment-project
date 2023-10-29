@@ -1,7 +1,6 @@
-import express, { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 import { databaseManager } from "../../lib/database-manager";
 import { comparePassword, hashPassword } from "../../utils/password";
-const router = express.Router();
 
 export const loginTravelerController = async (req: Request, res: Response, next: NextFunction) => {
     const { email, password } = req.body;

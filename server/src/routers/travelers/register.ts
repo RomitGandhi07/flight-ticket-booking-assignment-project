@@ -1,7 +1,7 @@
-import express, { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 import { databaseManager } from "../../lib/database-manager";
 import { hashPassword } from "../../utils/password";
-const router = express.Router();
+import { pickFromObject } from "../../utils";
 
 export const registerTravelerController = async (req: Request, res: Response, next: NextFunction) => {
     const { email, phone_number, password } = req.body;
@@ -12,8 +12,6 @@ export const registerTravelerController = async (req: Request, res: Response, ne
         values: [email, phone_number]
     });
 
-    const hashedPassword = await hashPassword(password);
-
     // If user is already exist then throw an error
     if(existingUser) {
         return res.status(409).json({
@@ -21,8 +19,19 @@ export const registerTravelerController = async (req: Request, res: Response, ne
         })
     }
 
+    const userData = pickFromObject(req.body, ["email", "name", "password", "phone_number", "gender", "dob"]);
+
+    userData.password = await hashPassword(password);
+
+    //  Add record into the tabble
+    const result = await databaseManager.insertRecordIntoTable({
+        tableName: "travelers",
+        data: userData
+    })
+
     return res.json({
-        hashedPassword
+        result,
+        userData
     });
 
 
