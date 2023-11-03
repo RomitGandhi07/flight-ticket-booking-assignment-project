@@ -1,9 +1,11 @@
-import { Request, Response, NextFunction } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import { databaseManager } from "../../lib/database-manager";
 import { hashPassword } from "../../utils/password";
 import { pickFromObject } from "../../utils";
+const router = Router();
 
-export const registerTravelerController = async (req: Request, res: Response, next: NextFunction) => {
+
+router.post('/travelers/register', async (req: Request, res: Response, next: NextFunction) => {
     const { email, phone_number, password } = req.body;
 
     //  Check whether email and phone_number already exists or not
@@ -23,16 +25,17 @@ export const registerTravelerController = async (req: Request, res: Response, ne
 
     userData.password = await hashPassword(password);
 
-    //  Add record into the tabble
+    //  Add record into the table
     const result = await databaseManager.insertRecordIntoTable({
         tableName: "travelers",
         data: userData
-    })
+    });
 
     return res.json({
         result,
-        userData
+        userData,
+        message: "User added successfully."
     });
+});
 
-
-};
+export { router as travelerRegisterRouter }

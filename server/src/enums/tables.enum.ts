@@ -5,5 +5,7 @@ export enum Tables {
     CITIES = "cities",
     STATES = "states",
     COUNTRIES = "countries",
-    PASSENGERS = "passengers"
+    PASSENGERS = "passengers",
+    FLIGHTS_METADATA = "flights_metadata",
+    FLIGHTS_SCHEDULES = "flight_schedules"
 }
