@@ -14,6 +14,9 @@ import { addFlightRouter } from "./routers/flights/add-flight";
 import { scheduleFlightRouter } from "./routers/flights/schedule-flight";
 import { updateScheduledFlightDetailsRouter } from "./routers/flights/update-schedule-flight-details";
 import { updateFlightDetailsRouter } from "./routers/flights/update-flight-details";
+import { addScheduledFlightSeatsRouter } from "./routers/flights/add-scheduled-fligt-seats";
+import { listScheduledFlightSeatsRouter } from "./routers/flights/list-scheduled-fligt-seats";
+import { updateScheduledFlightSeatsRouter } from "./routers/flights/update-scheduled-fligt-seats";
 
 const app = express();
 
@@ -41,5 +44,8 @@ app.use(addFlightRouter);
 app.use(scheduleFlightRouter);
 app.use(updateScheduledFlightDetailsRouter);
 app.use(updateFlightDetailsRouter);
+app.use(addScheduledFlightSeatsRouter);
+app.use(listScheduledFlightSeatsRouter);
+app.use(updateScheduledFlightSeatsRouter);
 
 export default app;

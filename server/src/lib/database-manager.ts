@@ -180,13 +180,13 @@ export class DatabaseManager {
                     (_, i) =>
                         '(' +
                         values[i]
-                            .map((_, j) => '$' + (i * Object.keys(data[0]).length + j + 1))
+                            .map((_, j) => '?')
                             .join(', ') +
                         ')'
                 )
                 .join(', ');
 
-            const insertQuery = `INSERT INTO ${tableName} (${columns}) VALUES ${placeholders}${returnRecords ? " RETURNING *": ""}`;
+            const insertQuery = `INSERT INTO ${tableName} (${columns}) VALUES ${placeholders}${returnRecords ? "": ""}`;
 
             const flatValues = values.flat(); // Flatten the array of arrays
 
