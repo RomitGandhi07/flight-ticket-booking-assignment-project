@@ -17,13 +17,33 @@ import { updateFlightDetailsRouter } from "./routers/flights/update-flight-detai
 import { addScheduledFlightSeatsRouter } from "./routers/flights/add-scheduled-fligt-seats";
 import { listScheduledFlightSeatsRouter } from "./routers/flights/list-scheduled-fligt-seats";
 import { updateScheduledFlightSeatsRouter } from "./routers/flights/update-scheduled-fligt-seats";
+import { searchFlightsRouter } from "./routers/bookings/flights-search";
+import { bookingRouter } from "./routers/bookings/bookings";
+import { updateBookingStatusRouter } from "./routers/bookings/update-booking-status";
+import { listTravelerBookingsRouter } from "./routers/bookings/list-traveler-bookings";
+import { addBookingReviewRouter } from "./routers/reviews/add-booking-review";
+import { fetchSpecificBookingReviewRouter } from "./routers/reviews/fetch-specific-booking-review";
+import { fetchSpecificBookingDetailsRouter } from "./routers/bookings/fetch-specific-booking-details";
+import { travelerLoginRouter } from "./routers/travelers/login";
 
 const app = express();
 
 app.use(express.json());
 
+// Airline staff router
+
+// Flights
+app.use(addFlightRouter);
+app.use(scheduleFlightRouter);
+app.use(updateScheduledFlightDetailsRouter);
+app.use(updateFlightDetailsRouter);
+app.use(addScheduledFlightSeatsRouter);
+app.use(listScheduledFlightSeatsRouter);
+app.use(updateScheduledFlightSeatsRouter);
+
 // Travelers Router
 app.use(travelerRegisterRouter);
+app.use(travelerLoginRouter);
 
 // Traveler Addresses
 app.use(addTravelerAddressRouter);
@@ -39,13 +59,15 @@ app.use(fetchSpecificTravelerPassengerRouter);
 app.use(updateTravelerPassengerRouter);
 app.use(removeTravelerPassengerRouter);
 
-// Flights
-app.use(addFlightRouter);
-app.use(scheduleFlightRouter);
-app.use(updateScheduledFlightDetailsRouter);
-app.use(updateFlightDetailsRouter);
-app.use(addScheduledFlightSeatsRouter);
-app.use(listScheduledFlightSeatsRouter);
-app.use(updateScheduledFlightSeatsRouter);
+// Bookings
+app.use(searchFlightsRouter);
+app.use(bookingRouter);
+app.use(updateBookingStatusRouter);
+app.use(listTravelerBookingsRouter);
+app.use(fetchSpecificBookingDetailsRouter);
+
+// Booking review
+app.use(addBookingReviewRouter);
+app.use(fetchSpecificBookingReviewRouter);
 
 export default app;

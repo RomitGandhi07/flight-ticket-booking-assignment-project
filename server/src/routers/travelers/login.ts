@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { databaseManager } from "../../lib/database-manager";
-import { comparePassword, hashPassword } from "../../utils/password";
+import { comparePassword } from "../../utils/password";
+import express from "express";
+const router = express.Router();
 
-export const loginTravelerController = async (req: Request, res: Response, next: NextFunction) => {
+router.post('/login', async (req: Request, res: Response, next: NextFunction) => {
     const { email, password } = req.body;
 
     //  Check whether email exists or not, if not then throw 404 not found error
@@ -31,4 +33,6 @@ export const loginTravelerController = async (req: Request, res: Response, next:
         message: "User logged in successfully."
     })
 
-};
+});
+
+export { router as travelerLoginRouter }
