@@ -25,6 +25,7 @@ import { addBookingReviewRouter } from "./routers/reviews/add-booking-review";
 import { fetchSpecificBookingReviewRouter } from "./routers/reviews/fetch-specific-booking-review";
 import { fetchSpecificBookingDetailsRouter } from "./routers/bookings/fetch-specific-booking-details";
 import { travelerLoginRouter } from "./routers/travelers/login";
+import { fetchSpecificTravelerDetailsRouter } from "./routers/travelers/fetch-traveler-details";
 
 const app = express();
 
@@ -44,6 +45,7 @@ app.use(updateScheduledFlightSeatsRouter);
 // Travelers Router
 app.use(travelerRegisterRouter);
 app.use(travelerLoginRouter);
+app.use(fetchSpecificTravelerDetailsRouter);
 
 // Traveler Addresses
 app.use(addTravelerAddressRouter);
@@ -59,8 +61,10 @@ app.use(fetchSpecificTravelerPassengerRouter);
 app.use(updateTravelerPassengerRouter);
 app.use(removeTravelerPassengerRouter);
 
-// Bookings
+// Flights search
 app.use(searchFlightsRouter);
+
+// Bookings
 app.use(bookingRouter);
 app.use(updateBookingStatusRouter);
 app.use(listTravelerBookingsRouter);
