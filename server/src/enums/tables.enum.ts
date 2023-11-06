@@ -1,5 +1,6 @@
 export enum Tables {
     USERS = "users",
+    AIRLINE_STAFF = "airline_staff",
     TRAVELERS = "travelers",
     TRAVELER_ADDRESSES = "traveler_addresses",
     CITIES = "cities",

@@ -18,9 +18,9 @@ router.post("/bookings", async (req: Request, res: Response, next: NextFunction)
         values: [flight_schedule_id]
     });
 
-    if(flight) {
-        return res.status(409).json({
-            error: "Flight already exists."
+    if(!flight) {
+        return res.status(400).json({
+            error: "Flight not found."
         });
     }
 
@@ -37,7 +37,7 @@ router.post("/bookings", async (req: Request, res: Response, next: NextFunction)
 
     // Fetch all seats of that flight and create map of seat number with status
     const flightSeats: any = await databaseManager.queryTable({
-        query: `SELECT * FROM ${Tables.FLIGHT_SEATS} WHERE flight_schedule_id = AND date = ?`,
+        query: `SELECT * FROM ${Tables.FLIGHT_SEATS} WHERE flight_schedule_id = ? AND date = ?`,
         values: [flight_schedule_id, date]
     });
 
@@ -46,12 +46,11 @@ router.post("/bookings", async (req: Request, res: Response, next: NextFunction)
         flightSeatsMap.set(seat.seat_number, seat);
     });
 
-
     // Loop through all seats provided and check whether all seat numbers and passengers are valid or not
     let totalAmount = 0;
     const passengerSeats: Array<any> = [];;
 
-    seats.forEach((seat: any) => {
+    for(const seat of seats) {
         const flightSeatInfo = flightSeatsMap.get(seat.seat_number);
         if(!flightSeatInfo) {
             return res.status(404).json({
@@ -76,18 +75,43 @@ router.post("/bookings", async (req: Request, res: Response, next: NextFunction)
             passenger_id: seat.passenger_id,
             flight_seat_id: flightSeatInfo.id
         });
-    });
 
+        // Make that seat blocked
+        await databaseManager.updateRecordFromTable({
+            tableName: Tables.FLIGHT_SEATS,
+            record: {
+                status: 'Blocked',
+            },
+            whereCondition: {
+                condition: "flight_schedule_id = ? AND date = ? AND seat_number = ?",
+                values: [flight_schedule_id, date, seat.seat_number]
+            }
+        });
+    }
+
+    const transactionId = crypto.randomBytes(20).toString('hex');
     // Add pending entry in the payments
     await databaseManager.insertRecordIntoTable({
         tableName: Tables.PAYMENTS,
         data: {
             traveler_id: travelerId,
             amount: totalAmount,
-            txn_id: crypto.randomBytes(20).toString('hex'),
+            txn_id: transactionId,
             status: 'Pending',
         }
     });
+
+    // Fetch the payment using transactionId
+    const payment = await databaseManager.singleRecordQueryTable({
+        query: `SELECT * FROM ${Tables.PAYMENTS} WHERE txn_id = ?`,
+        values: [transactionId]
+    })
+
+    if(!payment) {
+        return res.status(500).json({
+            error: "Something went wrong."
+        });
+    }
 
     // Add entry of booking in the boookings table
     await databaseManager.insertRecordIntoTable({
@@ -95,10 +119,23 @@ router.post("/bookings", async (req: Request, res: Response, next: NextFunction)
         data: {
             traveler_id: travelerId,
             flight_schedule_id: flight_schedule_id,
-            payment_id: "", // TODO: Need to fetch payment id
+            payment_id: payment.id,
             status: 'Pending'
         }
     });
+
+     // Fetch the booking using paymentId
+    const booking = await databaseManager.singleRecordQueryTable({
+        query: `SELECT * FROM ${Tables.BOOKINGS} WHERE payment_id = ?`,
+        values: [payment.id]
+    })
+
+    if(!booking) {
+        return res.status(500).json({
+            error: "Something went wrong."
+        });
+    }
+
 
     // Add entry in the booking passengers
     await databaseManager.insertMultipleRecordIntoTable({
@@ -106,7 +143,7 @@ router.post("/bookings", async (req: Request, res: Response, next: NextFunction)
         data: passengerSeats.map(record => {
             return {
                 ...record,
-                booking_id: "" // TODO: Need to fetch booking_id
+                booking_id: booking.id
             }
         })
     })

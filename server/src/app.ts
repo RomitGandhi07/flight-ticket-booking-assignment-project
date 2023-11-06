@@ -26,12 +26,18 @@ import { fetchSpecificBookingReviewRouter } from "./routers/reviews/fetch-specif
 import { fetchSpecificBookingDetailsRouter } from "./routers/bookings/fetch-specific-booking-details";
 import { travelerLoginRouter } from "./routers/travelers/login";
 import { fetchSpecificTravelerDetailsRouter } from "./routers/travelers/fetch-traveler-details";
+import { airlineStaffLoginRouter } from "./routers/airline-staff/login";
+import { airlineStaffRegisterRouter } from "./routers/airline-staff/register";
+import { fetchSpecificAirlineStaffDetailsRouter } from "./routers/airline-staff/fetch-airline-staff-details";
 
 const app = express();
 
 app.use(express.json());
 
 // Airline staff router
+app.use(airlineStaffLoginRouter);
+app.use(airlineStaffRegisterRouter);
+app.use(fetchSpecificAirlineStaffDetailsRouter);
 
 // Flights
 app.use(addFlightRouter);

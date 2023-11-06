@@ -22,7 +22,19 @@ router.put("/bookings/payments/:paymentId", async (req: Request, res: Response, 
         });
     }
 
-    const bookingStatus = status === 'Paid' ? 'Confirmed' : 'Failed';
+    const bookingStatus = status === 'Paid' ? 'Confirmed' : 'Cancelled';
+
+    // Update payment status
+    await databaseManager.updateRecordFromTable({
+        tableName: Tables.PAYMENTS,
+        record: {
+            status
+        },
+        whereCondition: {
+            condition: "id = ?",
+            values: [paymentId]
+        }
+    });
 
     // Update the booking status
     await databaseManager.updateRecordFromTable({
@@ -34,13 +46,36 @@ router.put("/bookings/payments/:paymentId", async (req: Request, res: Response, 
             condition: "payment_id = ?",
             values: [paymentId]
         }
-    })
+    });
 
+    // Fetch bookingId
+    const booking: any = await databaseManager.singleRecordQueryTable({
+        query: `SELECT * FROM ${Tables.BOOKINGS} WHERE payment_id = ?`,
+        values: [paymentId]
+    });
 
+    // Fetch all booking passengers
+    const bookingPassengers: any = await databaseManager.queryTable({
+        query: `SELECT * FROM ${Tables.BOOKING_PASSENGERS} WHERE booking_id = ?`,
+        values: [booking.id]
+    });
+
+    // Mark seats as Booked if paid otherwise avaialable
+    for(const bookingPassenger of bookingPassengers) {
+        await databaseManager.updateRecordFromTable({
+            tableName: Tables.FLIGHT_SEATS,
+            record: {
+                status: bookingStatus === 'Confirmed' ? 'Booked': 'Available',
+            },
+            whereCondition: {
+                condition: "id = ?",
+                values: [bookingPassenger.flight_seat_id]
+            }
+        });
+    }
     return res.json({
-        message: `Booking ${bookingStatus}.`
-    })
-
+        message: `Booking ${bookingStatus !== 'Cancelled' ? bookingStatus : 'Failed'}.`
+    });
 });
 
 export { router as updateBookingStatusRouter }
