@@ -48,51 +48,11 @@ export class DatabaseManager {
     async disconnect() {
         try {
             await this.connection.end();
-            console.info('Disconnected from PostgreSQL');
+            console.info('Disconnected from MySQL');
         } catch (error) {
-            console.error('Error disconnecting from PostgreSQL:', error);
+            console.error('Error disconnecting from MySQL:', error);
         }
     }
-
-    // This function will create a new database if is not exists.
-    // async createDatabaseIfNotExists(): Promise<void> {
-    //     const client = new Client({
-    //         user: process.env.DB_USER,
-    //         host: process.env.DB_HOST,
-    //         database: 'postgres', // Connect to the default 'postgres' database
-    //         password: process.env.DB_PASS,
-    //         port: +`${process.env.DB_PORT}`,
-    //     });
-
-    //     try {
-    //         await client.connect();
-    //         const res = await client.query(
-    //             `SELECT 1 FROM pg_database WHERE datname = $1`,
-    //             [this.databaseName]
-    //         );
-
-    //         if (!res.rows.length) {
-    //             await client.query(`CREATE DATABASE ${this.databaseName}`);
-    //             console.info(`Database created successfully.`);
-    //         } else {
-    //             console.info(`Database already exists.`);
-    //         }
-    //     } catch (error) {
-    //         console.error('Error creating database:', error);
-    //     } finally {
-    //         client.end();
-    //     }
-    // }
-
-    // Ensure that the extension "uuid-ossp" is installed in your database.
-    // async addExtensionIfNotExists() {
-    //     try {
-    //         await this.pool.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
-    //     } catch (err) {
-    //         console.error('Error creating EXTENSION:', err);
-    //         throw err; // Re-throw the error to propagate it to the calling function.
-    //     }
-    // }
 
     async createTable(tableName: string, sqlQuery: string) {
         try {
@@ -144,18 +104,7 @@ export class DatabaseManager {
             if(!result[0] || !result[0].affectedRows) {
                 throw new Error("Something went wrong while inserting...");
             }
-            // // If any row has been inserted then continue
-            // if(result.rowCount) {
-            //     // If we need to return id then return it otherwise return the rowCount means how many rows inserted
-            //     if(returnRecords && result.rows.length) {
-            //         return result.rows[0];
-            //     }
-            //     else {
-            //         return result.rowCount;`
-            //     }
-            // }
 
-            // throw new InternalServerError();
             return result;
         } catch (err) {
             console.error('Error inserting record into table:', tableName, err);
@@ -192,18 +141,6 @@ export class DatabaseManager {
 
             const result = await this.connection.query(insertQuery, flatValues);
 
-            // If any row has been inserted then continue
-            // if(result.rowCount) {
-            //     // If we need to return id then return it otherwise return the rowCount means how many rows inserted
-            //     if(returnRecords && result.rows.length) {
-            //         return result.rows;
-            //     }
-            //     else {
-            //         return result.rowCount;
-            //     }
-            // }
-
-            // throw new InternalServerError();
             return result;
         } catch (err) {
             console.error(
@@ -244,27 +181,13 @@ export class DatabaseManager {
             if (whereCondition) {
                 updateQuery += ` WHERE ${whereCondition.condition}`;
             }
-            // if(returnRecords) {
-            //     updateQuery += `RETURNING *`;
-            // }
 
             const result: [ResultSetHeader, FieldPacket[]] = await this.connection.query(updateQuery, [...values, ...(whereCondition?.values ?? [])]);
 
             if(!result[0] || !result[0].affectedRows) {
                 throw new Error("Something went wrong while updating...");
             }
-            // If any row has been inserted then continue
-            // if(result.rowCount) {
-            //     // If we need to return id then return it otherwise return the rowCount means how many rows updated
-            //     if(returnRecords && result.rows.length) {
-            //         return result.rows;
-            //     }
-            //     else {
-            //         return result.rowCount;
-            //     }
-            // }
 
-            // throw new InternalServerError();
             return result;
         } catch (err) {
             console.error('Error updating record in table:', tableName, err);
@@ -277,24 +200,13 @@ export class DatabaseManager {
         values: Array<any>
     }, returnRecords?: boolean}) {
         try {
-            const deleteQuery = `DELETE FROM ${tableName} WHERE ${whereCondition.condition}${returnRecords ? "": ""}`;
+            const deleteQuery = `DELETE FROM ${tableName} WHERE ${whereCondition.condition}`;
             const result: [ResultSetHeader, FieldPacket[]]  = await this.connection.query(deleteQuery, whereCondition.values);
 
             if(!result[0] || !result[0].affectedRows) {
                 throw new Error("Something went wrong while deleting...");
             }
-            // // If any row has been inserted then continue
-            // if(result.rowCount) {
-            //     // If we need to return id then return it otherwise return the rowCount means how many rows updated
-            //     if(returnRecords && result.rows.length) {
-            //         return result.rows;
-            //     }
-            //     else {
-            //         return result.rowCount;
-            //     }
-            // }
 
-            // throw new InternalServerError();
             return result;
         } catch (err) {
             console.error('Error deleting record from table:', tableName, err);

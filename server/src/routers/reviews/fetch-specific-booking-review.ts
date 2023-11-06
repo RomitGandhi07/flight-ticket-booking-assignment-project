@@ -9,13 +9,13 @@ router.get("/bookings/:bookingId/review", async (req: Request, res: Response, ne
 
     //  Check whether booking is valid or not, if not then throw an error
     const bookingReview = await databaseManager.singleRecordQueryTable({
-        query: `SELECT * FROM ${Tables.BOOKINGS} WHERE id=?`,
+        query: `SELECT * FROM ${Tables.REVIEWS} WHERE booking_id=?`,
         values: [bookingId]
     })
 
     if(!bookingReview) {
         return res.status(404).json({
-            error: "Traveler not found."
+            error: "Booking not found."
         });
     }
 

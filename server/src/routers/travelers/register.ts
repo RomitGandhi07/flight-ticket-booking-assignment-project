@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from "express";
 import { databaseManager } from "../../lib/database-manager";
 import { hashPassword } from "../../utils/password";
 import { pickFromObject } from "../../utils";
+import { Tables } from "../../enums/tables.enum";
 const router = Router();
 
 
@@ -9,8 +10,8 @@ router.post('/travelers/register', async (req: Request, res: Response, next: Nex
     const { email, phone_number, password } = req.body;
 
     //  Check whether email and phone_number already exists or not
-    const existingUser = await databaseManager.queryTable({
-        query: "SELECT * FROM travelers WHERE email=? OR phone_number=?",
+    const existingUser = await databaseManager.singleRecordQueryTable({
+        query: `SELECT * FROM ${Tables.TRAVELERS} WHERE email=? OR phone_number=?`,
         values: [email, phone_number]
     });
 
@@ -27,13 +28,11 @@ router.post('/travelers/register', async (req: Request, res: Response, next: Nex
 
     //  Add record into the table
     const result = await databaseManager.insertRecordIntoTable({
-        tableName: "travelers",
+        tableName: Tables.TRAVELERS,
         data: userData
     });
 
     return res.json({
-        result,
-        userData,
         message: "User added successfully."
     });
 });
